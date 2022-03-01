@@ -4,7 +4,7 @@
 #Script Name    : Troubleshooting Wizard NMIS8 OPMANTEK
 #Description    : Welcome to the Troubleshooting tool, here you will find some useful options
 #                 for analyzing, checking and diagnosing the NMIS monitoring system.
-#link						: https://community.opmantek.com/display/NMISES/Manual+descriptivo+del+Troubleshooting+Wizard
+#link           : https://community.opmantek.com/display/NMISES/Manual+descriptivo+del+Troubleshooting+Wizard
 #Author         : Arnulfo N. Garcia Perez
 #Email          : arnulfog@opmantek.com | arnulfo.tom.tics@gmail.com
 #Usage          : ./01_TS_Wizard_OMK.sh
