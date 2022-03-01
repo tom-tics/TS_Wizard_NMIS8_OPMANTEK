@@ -1,4 +1,19 @@
 #!/bin/bash
+#########################################################################################################################
+#########################################################################################################################
+#Script Name    : Troubleshooting Wizard NMIS8 OPMANTEK
+#Description    : Welcome to the Troubleshooting tool, here you will find some useful options
+#                 for analyzing, checking and diagnosing the NMIS monitoring system.
+#link						: https://community.opmantek.com/display/NMISES/Manual+descriptivo+del+Troubleshooting+Wizard
+#Author         : Arnulfo N. Garcia Perez
+#Email          : arnulfog@opmantek.com | arnulfo.tom.tics@gmail.com
+#Usage          : ./01_TS_Wizard_OMK.sh
+#########################################################################################################################
+#########################################################################################################################
+# Requirement: The script requires to be executed with "root" user, it also uses secondary scripts
+# so they need to be integrated to the indicated directories, please read the instructions.
+#########################################################################################################################
+
 
 ### Colors ##
 ESC=$(printf '\033') RESET="${ESC}[0m" BLACK="${ESC}[30m" RED="${ESC}[31m"
