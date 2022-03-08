@@ -84,7 +84,8 @@ die "Cannot read directory $backupdir, check permissions!\n"
 		if (!-r $backupdir or !-x $backupdir);
 
 # now let's take a new backup...
-my $backupprefix = "nmis-config-backup-";
+#my $backupprefix = "nmis-config-backup-";
+my $backupprefix = "Troubleshooting_Wizard_backup-";
 my $backupfilename = "$backupdir/$backupprefix".POSIX::strftime("%Y-%m-%d-%H%M",localtime).".tar";
 # ...of our models and conf first.
 my $status = system("tar","-cf",$backupfilename,"-C","$FindBin::RealBin/..", "models","conf","cgi-bin");

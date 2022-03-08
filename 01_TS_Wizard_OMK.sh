@@ -35,11 +35,11 @@ sub_submenuTop() {
 clear
 echo -e "\n
 ┌────────────────────────   Execute HealthCheck  TOP .────────────────────────────────┐
-                        ─  $(hostname) ─ $(date)
   The top half of the output contains statistics on processes and resource usage,
   while the bottom half contains a list of currently running processes.
 └─────────────────────────────────────────────────────────────────────────────────────┘\n"
 #ctop="$(top -bn1)" #complete
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 ctop="$(top -n1)"
 echo "$ctop "
@@ -62,7 +62,7 @@ echo -ne "$(magentaprint 'Details:')\n"
 echo "Load average :: $LOAD_AVG"
 echo "Current Load Average :: $LOAD_CURRENT"
 echo -ne "
- $(blueprint 'Here are some Tips:')
+ $(blueprint 'TIPS TO RESOLVE AN ISSUE:')
  $(redprint 'Check the processes with more CPU load.')
  $(redprint 'Check the processes with more memory usage.')
  $(redprint 'Check the I/O performance')"
@@ -77,7 +77,7 @@ echo -ne "$(magentaprint 'Details:')\n"
 echo "Number of zombie processes :: $NZombie"
 echo "Current Load Average :: $DZombie"
 echo -ne "
- $(blueprint 'Here are some Tips:')
+ $(blueprint 'TIPS TO RESOLVE AN ISSUE:')
  $(redprint 'Review processes -Multiple processes are in Zombien state.')
  $(redprint 'Check that there are no glued processes.')
  $(redprint 'Check Processes waiting for I/O operations')"
@@ -93,7 +93,7 @@ echo -ne "$(magentaprint 'Details:')\n"
 echo "Current Memory Usage :: $Musage%"
 echo -e "MEMORY :: \n $MStatus"
         echo -ne "
- $(blueprint 'Here are some Tips:')
+ $(blueprint 'TIPS TO RESOLVE AN ISSUE:')
  $(redprint 'Check disk partition.')
  $(redprint 'Cleaning of big log files.')
  $(redprint 'Search for big files.')
@@ -128,7 +128,6 @@ sub_submenuDateT() {
 clear
 echo -e "
 ┌────────────────   Execute HealthCheck System date and time    .─────────────────────┐
-                              ─  $(hostname) ── $(date)
   Operating System date display and weather monitoring system settings.
 └─────────────────────────────────────────────────────────────────────────────────────┘\n"
 
@@ -185,12 +184,11 @@ sub_subDiskRW() {
   clear
   echo -e "\n
 ┌────────────────────────────   Disk R/W  .────────────────────────────────┐
-  -->  Disk Performance Check
-       This test provides the speed of data transfer when reading or
+  -->  This test provides the speed of data transfer when reading or
        writing to the server's disk.
 └──────────────────────────────────────────────────────────────────────────┘\n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
-echo -e "   Test to measure disk write speed \n"
 echo -ne "$(greenprint 'Command:
 dd if=/dev/zero of=/usr/local/omkTestFile bs=10M count=1 oflag=direct')\n"
 dd if=/dev/zero of=/usr/local/omkTestFile bs=10M count=1 oflag=direct
@@ -248,10 +246,10 @@ sub_subFilesystem() {
 └────────────────────────────────────────────────────────────────────────────┘"
 
 echo -ne "\n$(blueprint '-- Show the amount of free disk space on each mounted disk --')\n"
-echo "Command: f -h"
+echo "Command: df -h"
 df -h
 echo -ne "
- $(blueprint 'Tips:')
+ $(blueprint 'TIPS TO RESOLVE AN ISSUE:')
  $(redprint 'If any disk has more than 85% usage, contact the administrator
  and inform that the server is low on disk space.')\n"
 
@@ -265,12 +263,12 @@ echo -ne "$(blueprint '-- Display the amounts of memory used and available on th
 echo "Command: free -mt"
 free -mt
 free=$(free -mt | grep Total | awk '{print $4}')
-#if [[ "$free" -le 400  ]]; then
-if [[ "$free" -le 9000  ]]; then
+if [[ "$free" -le 700  ]]; then
+#if [[ "$free" -le 9000  ]]; then
         ## get top processes consuming system memory and save to temporary file
         #ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head
-        echo -ne "\n$(redprint 'TIP:
-Warning, server memory is running low') \nFree memory: $free MB\n"
+        echo -ne "\n$(redprint 'TIPS TO RESOLVE AN ISSUE:
+Warning, server memory is filling up') \nFree memory: $free MB\n"
         echo -ne "$(redprint 'Contact the administrator and indicate what is happening')"
 fi
 #cat /proc/swaps
@@ -313,7 +311,7 @@ TIME=$(date +%Y-%m-%d_%T)
 omk=`ps awx | grep 'opmantek' |grep -v grep|wc -l`
 if [ $omk == 0 ];
     then
-      echo -ne "\n\n$(blueprint 'The omkd service is stopped, if you want to start it you can run the command:') \n"
+      echo -ne "\n$(blueprint 'The omkd service is stopped, if you want to start it you can run the command:') \n"
       echo -ne " $(redprint '--> service omkd start or service omkd restart')"
 
     else
@@ -326,13 +324,17 @@ if ps ax | grep -v grep | grep $demon > /dev/null
     then
       echo -ne "\n $(greenprint 'service ') $demon $(greenprint ' is running')"
     else
-      echo -ne "\n\n$(blueprint ' The ') $demon $(blueprint 'service is stopped, if you want to start it you can run the command:') \n"
+      echo -ne "\n
+$(blueprint ' The ') $demon $(blueprint 'service is stopped, if you want to start it you can run the command:') \n"
       echo -ne " -->$(redprint ' service') $demon $(redprint 'start')\n"
       echo -ne " -->$(redprint ' service') $demon $(redprint 'restart')\n"
     fi
 done
+echo -e "NOTE: If the iptables service is disabled, this is correct since nmis does not require it,
+if it is enabled, please disable it for the correct operation of the monitoring system."
 
-echo -e "\n Check the current status of SELinux \n"
+
+echo -e "\nCheck the current state of SELinux (must be disabled). \n"
 sestatus
 
 echo -ne "\n
@@ -360,11 +362,11 @@ sub_subLoadaverage() {
   clear
   echo -e "
 ┌────────────────────────────   Load Average  .────────────────────────────────┐
-  -->  The load average is the average system load on a Linux server for a
-       defined period of times.
+  -->  Linux load averages are "system load averages" that show the running
+       thread (task) demand on the system as an average number of running plus
+       waiting threads.
 └──────────────────────────────────────────────────────────────────────────────┘\n"
-echo -e "Linux load averages are "system load averages" that show the running thread (task)
-demand on the system as an average number of running plus waiting threads."
+
 echo -e "\nCommand: w \n"
 w
 echo -ne "$(redprint '
@@ -373,7 +375,7 @@ Some interpretations:
 => If the averages are 0.0, then your system is idle.
 => If the 1 minute average is higher than the 5 or 15 minute averages, then load is increasing.
 => If the 1 minute average is lower than the 5 or 15 minute averages, then load is decreasing.
-=> If they are higher than your CPU count, then you might have a performance problem (it depends).')\n"
+=> If they are higher than your CPU count, then you might have a performance problem.')\n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -404,28 +406,32 @@ sub_subTop20processesbyCPU() {
   clear
   echo -e "\n
 ┌───────────────────────   Top 5 processes by CPU and Memory  .──────────────────────────┐
-  -->  Process CPU Usage
-└──────────────────────────────────────────────────────────────────────────────┘\n"
+  -->  The 5 processes that currently consume the most memory are shown, in addition to
+       CPU and memory details
+└────────────────────────────────────────────────────────────────────────────────────────┘\n"
 
 echo -ne "$(blueprint 'Query of the 5 processes that consume more percentage (%) of CPU in the server.')\n"
 ps -Aeo user,pid,ppid,%mem,%cpu,stat,start,time,cmd --sort=-%cpu | head -n 6
 
 echo -e "\n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "\n$(blueprint 'Details CPU:')\n"
 lscpu
 
 echo -e "\n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "\n\n$(blueprint 'Query of the 5 processes that consume more percentage (%) of MEMORY in the server.')\n"
 ps -Aeo user,pid,ppid,%mem,%cpu,stat,start,time,cmd --sort=-%mem | head -n 6
 
 echo -e "\n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "\n$(blueprint 'Details Memory')\n"
 lsmem
 
-echo -ne "\n$(redprint 'TIP:
+echo -ne "\n$(redprint 'TIPS TO RESOLVE AN ISSUE:
 If the processes exceed 85% of the CPU or memory, please perform
 an investigation, it could be a case of hung processes.')"
 
@@ -462,15 +468,23 @@ sub_subTcpdump() {
 
 └──────────────────────────────────────────────────────────────────────────────┘\n"
 
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 IFInterface=`netstat -i | column -t | awk '{print $1}'| sed 's/Kernel//'| sed 's/Iface//' | head -n 6`
 for i in $IFInterface; do
 echo -ne "\n$(redprint '─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.─.')\n"
 echo -ne "$(greenprint 'tcpdump -lnni') $i $(greenprint '-s0 -x port 162')\n"
-      timeout 2 tcpdump -lnni $i -s0 -x port 162
+cd /tmp/
+      timeout 3 tcpdump -lnni $i -s0 -x port 162 -w capture_$i_$(hostname)_$(date +%Y%m%d_%T).pcap
       #tcpdump -nevi ens224 -X -x port 162
 done
 
+echo -ne "\n$(redprint 'NOTE:
+In the /tmp/ directory you will find the .pcap files of the query,
+this will help to better diagnose the problem, using Wireshark, for example..')
+file name: capture_$(hostname)_* \n"
+
+find /tmp -name "capture_$(hostname)_*" | tail -4
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
 $(blueprint 'b)') Back    $(magentaprint 'm)') Main Menu   $(redprint 'e)') Exit
@@ -527,9 +541,10 @@ sub_subListofloggedusers() {
   clear
   echo -e "
 ┌──────────────────────────    List of logged users  .─────────────────────────┐
-  -->  List of users connected to the operating system
+  -->  Shows information about the users currently on the machine, and their
+       processes.
 └──────────────────────────────────────────────────────────────────────────────┘\n"
-echo -ne "$(blueprint 'Shows information about the users currently on the machine, and their processes.') \n"
+
 echo -e "\n"
 w
 echo -e "\n"
@@ -569,6 +584,7 @@ sub_subLoguseraudit() {
        critical messages, alerts in operating system logs.
 └─────────────────────────────────────────────────────────────────────────┘\n"
 ####################
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "$(blueprint 'Shows failed login attempts.') \n"
 ausearch --message USER_LOGIN --success no --interpret
@@ -585,7 +601,9 @@ tail -n 100 /var/log/dmesg | grep -i "error\|warn\|alert\|kernel\|panic\|user\|k
 echo -ne "\n$(blueprint 'Review of the /var/log/boot.log file for errors or failures') \n"
 tail -n 100 /var/log/boot.log | grep -i "error\|warn\|alert\|kernel\|panic\|user\|kill" | head -n 10
 
-
+echo -ne "\n$(redprint 'TIPS TO RESOLVE AN ISSUE:
+If you see that the same user has many failed attempts to the system,
+ask the administrator or the user if he has any problem with his password.') \n"
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
 $(blueprint 'b)') Back    $(magentaprint 'm)') Main Menu   $(redprint 'e)') Exit
@@ -620,8 +638,8 @@ set -o history
 history | tail -30
 
 
-echo -ne "\n$(blueprint 'Gives out the 10 most recently used commands by the user from the list above.') \n"
-echo -ne "$(greenprint 'Num. Execute | Num. Command | Command') \n"
+echo -ne "\n$(blueprint 'Gives out the 10 most recently used commands by the user recently.') \n"
+echo -ne "$(greenprint 'Times | Number in list  | Command') \n"
 
 history | sort -k2 | uniq -c --skip-fields=1 | sort -r -g | head
 
@@ -652,9 +670,10 @@ esac
 }
 sub_subShowDNSconfig() {
   clear
-  echo -e"\n
+  echo -e "\n
 ┌───────────────────────    Show DNS Config  .────────────────────┐
-  -->  Show DNS Config
+  -->  It allows to know if the configuration of the domain names
+       and the redirection to some important IP is correct.
 └─────────────────────────────────────────────────────────────────┘\n"
 echo -ne "$(blueprint 'Display of the dns configured in the system.') \n"
 cat /etc/resolv.conf
@@ -684,11 +703,12 @@ sub_subInternetwebtest() {
   clear
   echo -e "\n
 ┌───────────────────────    Internet web test  .────────────────────┐
-  -->  Test Internet
+  -->  We will try to send three internet packages to the Google
+       server and check the internet connectivity if we will be able
+       to receive the internet packets from the Google server.
 └───────────────────────────────────────────────────────────────────┘\n"
-echo -ne "$(blueprint 'We will try to send three internet packages to the Google server
-and check the internet connectivity if we will be able to receive the
-internet packets from the Google server') \n"
+
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -e "Command: ping -c 3 google.com \n"
 ping -c 3 google.com
@@ -727,8 +747,9 @@ subHealthCheck() {
   echo -e "
 ┌────────────────────────────   Execute HealthCheck  .────────────────────────────────┐
   -->  Basic Check of the Unix/Linux server
-└─────────────────────────────────────────────────────────────────────────────────────┘\n"
+└─────────────────────────────────────────────────────────────────────────────────────┘"
     echo -ne "
+
   $(blueprint '   Execute HealthCheck')
   $(greenprint '1)')  TOP.
   $(greenprint '2)')  System date and time.
@@ -811,15 +832,16 @@ sub_subCheckNMIScode() {
   echo -e "\n\n
 ┌───────────────────────    Check NMIS code  .────────────────────┐
   -->  Checking NMIS configuration files for errors
-└─────────────────────────────────────────────────────────────────┘\n"
-echo -ne "$(greenprint 'Review of NMIS monitoring system files for coding errors') \n"
+└─────────────────────────────────────────────────────────────────┘"
+
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "$(greenprint 'Wait a moment, we are working') \n"
 echo -ne "perl /usr/local/nmis8/admin/check_nmis_code.pl \n"
 #nms_code="$(perl /usr/local/nmis8/admin/check_nmis_code.pl | grep -v "ERROR compiling\|Can't locate\|BEGIN failed\|Compilation failed" | tr -d "\t\r" | sed -r '/^\s*$/d')"
-perl /usr/local/nmis8/admin/check_nmis_code.pl | grep -v "ERROR compiling\|Can't locate\|BEGIN failed\|Compilation failed" | tr -d "\t\r" | sed -r '/^\s*$/d'
+perl /usr/local/nmis8/admin/check_nmis_code.pl | grep -v "ERROR compiling\|Can't locate\|BEGIN failed\|cron.d\|models\/Copy\|Missing\|Compilation failed" | tr -d "\t\r" | sed -r '/^\s*$/d'
 #echo"$nms_code"
-echo -ne "\n$(magentaprint 'TIP:') \n"
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
 echo -ne "$(redprint 'It is recommended to review the mentioned files to solve these errors.') \n"
 
 echo -ne "\n
@@ -847,10 +869,11 @@ sub_subconfigurationbackup() {
   clear
   echo -e "\n
 ┌─────────────────  Perform a configuration backup  .─────────────┐
-  -->  Checking NMIS configuration files for errors.
   -->  Backup configuration directories in order to preserve all
        the adjustments made by the customer.
 └─────────────────────────────────────────────────────────────────┘\n"
+
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 
 echo -ne "$(blueprint 'Enter the directory where you want to save your backup:') \n"
@@ -920,9 +943,11 @@ sub_subComparefile() {
   clear
   echo -e "\n\n
 ┌──────────────────  Compare file configurations  .───────────────┐
-  -->  Compare file configurations
-       Comparison of default /install files with /omk/conf files.
+--> Comparison of /install/Config.nmis and /install/opCommon.nmis
+    with /conf/Config.nmis and /conf/opCommon.nmis files.
 └─────────────────────────────────────────────────────────────────┘\n"
+
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 
 echo -ne "$(blueprint 'Automatic comparison of the /nmis8/conf/Config.nmis file') \n"
@@ -931,6 +956,9 @@ perl /usr/local/nmis8/admin/diffconfigs.pl /usr/local/nmis8/install/Config.nmis 
 echo -ne "\n$(blueprint 'Automatic comparison of the /omk/install/opCommon.nmis file') \n"
 perl /usr/local/nmis8/admin/diffconfigs.pl /usr/local/omk/install/opCommon.nmis /usr/local/omk/conf
 
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'It is recommended to review each of the mentioned differences to detect possible problems in the
+configuration of the files.') \n"
 
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
@@ -958,9 +986,12 @@ sub_subfixperms() {
   echo -e "\n\n
 ┌───────────────────── Execute fixperms rutine  .─────────────────┐
   -->  Fixperms
+       Correction of permissions on NMIS monitoring system files.
 └─────────────────────────────────────────────────────────────────┘\n"
 
-echo -ne "$(blueprint 'Correction of permissions on NMIS monitoring system files') \n"
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
+
 echo -ne "$(greenprint 'perl /usr/local/nmis8/admin/fixperms.pl') \n"
 perl /usr/local/nmis8/admin/fixperms.pl
 
@@ -989,14 +1020,18 @@ esac
 sub_subModelchecking() {
   clear
   echo -e "\n\n
-┌───────────────────── Model checking  ─────────────────┐
+┌───────────────────────── Model checking  ─────────────────────┐
   -->  Model checking
-└───────────────────────────────────────────────────────┘\n"
+       Validation of syntax and verification of variable length
+       within the models.
+└───────────────────────────────────────────────────────────────┘\n"
 
-echo -ne "$(blueprint 'Validation of syntax and verification of variable length within the models.') \n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "$(greenprint 'perl /usr/local/nmis8/admin/modelcheck.pl') \n"
 perl /usr/local/nmis8/admin/modelcheck.pl
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'It is recommended to review the mentioned files to solve these possible syntax errors.') \n"
 
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
@@ -1024,9 +1059,9 @@ sub_subCrontabchecking() {
   echo -e "\n\n
 ┌───────────────────── Crontab checking  ─────────────────┐
   -->  Crontab checking
+       View the jobs scheduled in the crontab list.
 └───────────────────────────────────────────────────────┘\n"
 
-echo -ne "$(blueprint 'View the jobs scheduled in the crontab list') \n"
 for user in `cat /etc/passwd | cut -d":" -f1 | grep "nmis\|mongod"`;
 do
 echo -ne "$(greenprint 'crontab -l -u') $user \n"
@@ -1036,10 +1071,19 @@ done
 echo -ne "\n$(blueprint 'View the nmis cron file configuration') \n"
 echo -ne "$(greenprint 'cat /etc/cron.d/nmis') \n"
 cat /etc/cron.d/nmis
-
-echo -ne "\n$(magentaprint 'TIP:') \n"
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
 echo -ne "$(redprint 'It is recommended to check the collect parameters as needed for this server:') \n"
 echo -ne "$(yellowprint 'abort_after, nmis_maxthreads or maxthreads, sort_due_nodes') \n"
+
+
+echo -ne "\n$(blueprint 'cron.d directory detail') \n"
+cd /etc/cron.d/
+ls -l
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'If backups are found in the /etc/cron.d folder, please delete them or move
+them to a different folder, as it may conflict with scheduled tasks.') \n"
+
 
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
@@ -1066,12 +1110,19 @@ sub_subVerifyCPANlibraries() {
   clear
   echo -e "\n
 ┌───────────────────── Verify CPAN libraries  ─────────────────┐
-  -->  Verify CPAN libraries
-└───────────────────────────────────────────────────────┘\n"
-
+  -->  Checks for CPAN libraries and shows which ones are
+       needed so they can be installed if needed.
+└──────────────────────────────────────────────────────────────┘\n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 
 perl /usr/local/nmis8/admin/check_cpan_libraries.pl
+d=$(pwd)
+rm -f  $d/NMIS-Dependancie*
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'It is recommended to install the missing libraries. Contact your operator.') \n"
+
 
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
@@ -1102,6 +1153,7 @@ sub_SubLastchangedfiles() {
        NMIS and OMK directories is performed.
 └─────────────────────────────────────────────────────────────────────┘\n"
 
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 
 echo -ne "\n$(magentaprint 'Searching for last modified files') \n"
@@ -1131,6 +1183,9 @@ echo -ne "\n$(greenprint 'searching in /etc/cron.d/ ') \n"
 cd /etc/cron.d; ls -lst | head
 
 
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'If any recent file changes are detected, check if this is causing a system problem.') \n"
+
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
 $(blueprint 'b)') Back  $(magentaprint 'm)') Main Menu  $(redprint 'e)') Exit
@@ -1152,23 +1207,85 @@ e|E)
   ;;
 esac
 }
+sub_SubServerPerformanceTuning() {
+  clear
+  echo -e "\n
+┌───────────────────────────────── Configuration Server Performance Tuning.  ─────────────────────────────┐
+  -->  There are lots of factors that determine the system health of a server.
+The hardware capabilities - CPU, memory or disk - is an important one, but also the server load - number
+of devices (Nodes to be polled, updated, audited, synchronised), number of products (NMIS, OAE, opCharts,
+opHA - each running different processes), number of concurrent users.
+
+We all want the best performance for a server, and to optimise physical resources, our configuration has to
+be fine-grained adjusted.
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘\n"
+
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
+
+echo -ne "\n$(blueprint 'main parameters of the file /nmis8/conf/Config.nmis ') \n"
+grep "nmis_mthread" /usr/local/nmis8/conf/Config.nmis
+grep "nmis_maxthreads" /usr/local/nmis8/conf/Config.nmis
+grep "nmis_summary_poll_cycle" /usr/local/nmis8/conf/Config.nmis
+
+echo -ne "\n$(blueprint 'main parameters of the file /omk/conf/opCommon.nmis ') \n"
+grep "omkd_workers" /usr/local/omk/conf/opCommon.nmis
+grep "omkd_max_requests" /usr/local/omk/conf/opCommon.nmis
+grep "omkd_max_memory" /usr/local/omk/conf/opCommon.nmis
+grep "omkd_max_clients" /usr/local/omk/conf/opCommon.nmis
+grep "omkd_performance_logs" /usr/local/omk/conf/opCommon.nmis
+
+echo -ne "\n$(blueprint 'main parameters of the file /etc/mongod.conf ') \n"
+grep -A 12 "storage" /etc/mongod.conf
+echo -ne "\n$(magentaprint 'TIPS TO MongoDB:') \n"
+echo -ne "$(redprint 'MongoDB, in its default configuration, will use will use the larger of either 256 MB
+or ½ of (ram – 1 GB) for its cache size.
+MongoDB cache size can be changed by adding the cacheSizeGB argument to
+the /etc/mongod.conf configuration file, as shown below.') \n"
+
+
+echo -ne "\n\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "$(redprint 'If you require more details on how to configure these parameters, please consult the following link:
+https://community.opmantek.com/display/opCommon/Configuration+Options+for+Server+Performance+Tuning') \n"
+
+echo -ne "\n
+┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
+$(blueprint 'b)') Back  $(magentaprint 'm)') Main Menu  $(redprint 'e)') Exit
+Choose an option:  "
+read -r ans
+case $ans in
+b|B)
+  subConfigurationConsistency
+  ;;
+m|M)
+  mainmenu
+  ;;
+e|E)
+  fn_bye
+  ;;
+*)
+  fn_fail
+  sub_SubServerPerformanceTuning
+  ;;
+esac
+}
 ### Option Configuration Consistency  ##
 subConfigurationConsistency() {
   clear
-  echo "
+  echo -e "
 ┌──────────────────────   NMIS Configuration Consistency   ───────────────────────────┐
   -->  Options for Reviewing NMIS monitoring system configuration files.
 └─────────────────────────────────────────────────────────────────────────────────────┘\n"
     echo -ne "
 $(blueprint 'NMIS Configuration Consistency')
 $(greenprint '1)') Check NMIS code.
-$(greenprint '2)') Perform a configuration backup.
-$(greenprint '3)') Compare file configurations.
-$(greenprint '4)') Execute fixperms rutine.
-$(greenprint '5)') Model checking.
-$(greenprint '6)') Crontab checking.
-$(greenprint '7)') Verify CPAN libraries.
-$(greenprint '8)') Last changed files.
+$(greenprint '2)') Compare file configurations.
+$(greenprint '3)') Execute fixperms rutine.
+$(greenprint '4)') Model checking.
+$(greenprint '5)') Crontab checking.
+$(greenprint '6)') Verify CPAN libraries.
+$(greenprint '7)') Last changed files.
+$(greenprint '8)') Server Performance Tuning.
 
 $(magentaprint 'm)') Main Menu
 $(redprint 'e)') Exit
@@ -1179,25 +1296,25 @@ Choose an option:  "
         sub_subCheckNMIScode
         ;;
     2)
-        sub_subconfigurationbackup
-        ;;
-    3)
         sub_subComparefile
         ;;
-    4)
+    3)
         sub_subfixperms
         ;;
-    5)
+    4)
         sub_subModelchecking
         ;;
-    6)
+    5)
         sub_subCrontabchecking
         ;;
-    7)
+    6)
         sub_subVerifyCPANlibraries
         ;;
-    8)
+    7)
         sub_SubLastchangedfiles
+        ;;
+    8)
+        sub_SubServerPerformanceTuning
         ;;
     m|M)
         mainmenu
@@ -1219,7 +1336,7 @@ sub_subPollingsummaryR() {
   echo -e "\n
 ┌───────────────────────    Polling Summary X_late .────────────────────┐
   -->  Ejecute Polling Summary
-└─────────────────────────────────────────────────────────────────┘\n"
+└───────────────────────────────────────────────────────────────────────┘\n"
 x_Late_regex=`grep -Po '(\dx_late\=)\w*' /root/polling_summary_1_$(hostname)`
 x_0_late="\dx_late\=0"
 if [[ $x_Late_regex =~ $x_0_late ]]; then
@@ -1261,11 +1378,11 @@ sub_subPollingsummary() {
   clear
   echo -e "\n
 ┌───────────────────────    Polling Summary  .────────────────────┐
-  -->  Execute Polling Summary
+  --> Here we can see how many nodes have any late collect, and a
+  summary of nodes being collected and not collected.
 └─────────────────────────────────────────────────────────────────┘\n"
 
-echo -ne "$(greenprint 'Here we can see how many nodes have any late collect, and a summary of
-nodes being collected and not collected:') \n"
+echo -e "The test will start soon. \n"
 read -p "Press Enter to continue..."
 echo -ne "$(greenprint 'Wait a moment, we are working') \n"
 echo -ne "/usr/local/nmis8/admin/polling_summary.pl \n"
@@ -1275,6 +1392,7 @@ cmd_pg_summary=`perl /usr/local/nmis8/admin/polling_summary.pl > /root/polling_s
 
 echo "$cmd_polling_summary"
 #$cmd_polling_summary > /root/polling_summary_1_$(hostname)
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
 echo -ne "\n\n$(yellowprint 'If the values are in the x_late fields, we have to validate the following points:') \n"
 echo -ne "$(redprint 'Check for Ping and SNMP response.
 Verify the response time of the node and trace.
@@ -1315,14 +1433,16 @@ sub_subTraceroute() {
   clear
   echo -e "\n
 ┌───────────────────────────  Traceroute  .───────────────────────┐
-  -->  Traceroute
   -->  Traceroute tracks the route packets taken from an IP
        network on their way to a given host.
 └─────────────────────────────────────────────────────────────────┘\n"
 echo -ne "$(blueprint 'Enter the ip address or hostname:') \n"
 echo -ne "$(yellowprint 'Example: 1.1.1.1  or  localhost') \n"
 echo -ne "$(redprint 'IP/Hostname:')"; read var2
-traceroute -m 5 $var2
+traceroute $var2
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, contact your operator') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1353,14 +1473,16 @@ sub_subMTR() {
   clear
   echo -e "\n
 ┌────────────────────────────  MTR  .───────────────────────────┐
-  -->  MTR
-       As mtr starts, it investigates the network connection }
+  -->  As mtr starts, it investigates the network connection
        between the host mtr runs on and HOSTNAME.
 └───────────────────────────────────────────────────────────────┘\n"
 echo -ne "$(blueprint 'Enter the ip address or hostname:') \n"
 echo -ne "$(yellowprint 'Example: 10.10.10.10  or  localhost') \n"
 echo -ne "$(redprint 'IP/Hostname:')"; read var3
 mtr -r -b $var3
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, contact your operator') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1391,7 +1513,6 @@ sub_subPing() {
   clear
   echo -e "\n
 ┌───────────────────── Ping  .─────────────────┐
-  -->  Ping
   -->  Ping uses the ICMP protocol's mandatory
        ECHO_REQUEST datagram to elicit an ICMP
        ECHO_RESPONSE from a host or gateway.
@@ -1400,6 +1521,9 @@ echo -ne "$(blueprint 'Enter the ip address or hostname:') \n"
 echo -ne "$(yellowprint 'Example: 10.10.10.10  or  localhost') \n"
 echo -ne "$(redprint 'IP/Hostname:') \n"; read var4
 ping -c 4 -b -f $var4
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, contact your operator') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1430,26 +1554,42 @@ sub_subSNMPv3() {
   clear
   echo -e "\n
 ┌───────────────────────── SNMP V3 ───────────────────────┐
-  -->  SNMP checking
   -->  snmpwalk is an SNMP application that uses SNMP
        GETNEXT requests to query a network entity for a
        tree of information.
 └───────────────────────────────────────────────────────┘\n"
 
 echo -ne "$(blueprint 'SNMP v3 query structure:') \n"
-echo -n "snmpwalk -v3  -l <noAuthNoPriv|authNoPriv|authPriv> -u <username> [-a <MD5|SHA>] [-A <authphrase>]  [-x AES|DES] [-X <privaphrase>] <ipaddress>[:<dest_port>] [oid]"
-echo -ne "$(greenprint 'ENTER DATA ') \n"
+echo -n "snmpwalk -v3  -u <username> [-a <MD5|SHA>] [-A <authphrase>]  [-x AES|DES] [-X <privaphrase>] -l <noAuthNoPriv|authNoPriv|authPriv> <ipaddress>[:<dest_port>] [oid]"
+echo -ne "\n$(greenprint 'ENTER DATA ') \n"
+
+
+
+
 echo -ne "$(magentaprint 'Enter the ip address or hostname:') \n"
 echo -ne "$(yellowprint 'Example: 10.10.10.10  or  localhost') \n"
-echo -ne "$(redprint 'IP/Hostname:')"; read var7
-echo -ne "$(magentaprint 'Enter value of -l <noAuthNoPriv|authNoPriv|authPriv>:')"; read var8
-echo -ne "$(magentaprint 'Enter value of -u <username>')"; read var9
-echo -ne "$(magentaprint 'Enter value of -a <MD5|SHA>')"; read var10
-echo -ne "$(magentaprint 'Enter value of -A <authphrase>')"; read var11
-echo -ne "$(magentaprint 'Enter value of -x <AES|DES>')"; read var12
-echo -ne "$(magentaprint 'Enter value of -X <privaphrase>')"; read var13
+echo -ne "$(redprint 'Enter value of IP/Hostname:')"; read var7
+echo -ne "$(redprint 'Note: If you do not have "NMIS Priv Password", type authNoPriv; otherwise, type authPriv|noAuthNoPriv') \n"
+echo -ne "$(magentaprint 'Enter value of ("SNMP Priv Password")  -l <noAuthNoPriv|authNoPriv|authPriv>: ')"; read var8
+if [[ "$var8" == "authNoPriv" ]]; then
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Username")  -u <username>: ')"; read var9
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Auth Proto")  -a <MD5|SHA>: ')"; read var10
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Auth Password")  -A <authphrase>: ')"; read var11
+echo -ne "snmpwalk -v3 -u '$var9' -a '$var10' -A '$var11' -l '$var8' '$var7' system \n"
+snmpwalk -v3 -u $var9 -a $var10 -A $var11 -l $var8 $var7 system
+else
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Username")  -u <username>: ')"; read var9
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Auth Proto")  -a <MD5|SHA>: ')"; read var10
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Auth Password")  -A <authphrase>: ')"; read var11
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Priv Proto")  -x <AES|DES>: ')"; read var12
+  echo -ne "$(magentaprint 'Enter value of ("SNMP Priv Password")  -X <privaphrase>: ')"; read var13
 echo -ne "snmpwalk -v3 -u '$var9' -a '$var10' -A '$var11' -x '$var12' -X '$var13' -l '$var8' '$var7' system \n"
 snmpwalk -v3 -u $var9 -a $var10 -A $var11 -x $var12 -X $var13 -l $var8 $var7 system
+fi
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, validate the parameters again to perform
+the SNMP query or contact the administrator.') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1481,7 +1621,6 @@ sub_subSNMPv2() {
   clear
   echo -e "\n
 ┌───────────────────────── SNMP V2  ───────────────────────┐
-  -->  SNMP checking
   -->  snmpwalk is an SNMP application that uses SNMP
        GETNEXT requests to query a network entity for a
        tree of information.
@@ -1494,6 +1633,10 @@ echo -ne "$(blueprint 'Enter the SNMP community:') \n"
 echo -ne "$(redprint 'Community:')"; read var6
 echo -ne "$(greenprint 'snmpwalk -v2c -c') '$var6' '$var5' $(greenprint 'system') \n"
 snmpwalk -v2c -c $var6 $var5 system
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, validate the parameters again to perform
+the SNMP query or contact the administrator.') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1524,7 +1667,6 @@ sub_subSNMP() {
   clear
   echo -e "\n
 ┌────────────────────────────────── SNMP   ────────────────────────────────┐
-  -->  SNMP checking
   -->  What is snmpwalk?
 snmpwalk is the name given to an SNMP application that executes multiple
 GETNEXT requests automatically. The SNMP GETNEXT request is used to query
@@ -1537,6 +1679,12 @@ echo -ne "$(blueprint 'Select the snmp option to test:') \n"
 echo -ne "\n
   $(blueprint '1)') SNMPv1 and SNMPv2
   $(blueprint '2)') SNMPv3
+
+$(magentaprint 'NOTE:')
+$(redprint 'For the query to be effective you need to have the parameters,
+example: community snmp or
+username, MD5|SHA, authphrase, AES|DES, privaphrase, etc, etc.')
+
 
   $(blueprint 'b)') Back
   $(magentaprint 'm)') Main Menu
@@ -1568,15 +1716,18 @@ esac
 sub_subUpdatenodes() {
   clear
   echo -e "\n
-┌───────────────────── Update Node  ─────────────────┐
-  -->  Update
-└───────────────────────────────────────────────────────┘\n"
+┌───────────────────── Update Node  ────────────────────┐
+  -->  Allows performing an update of a node on demand
+└───────────────────────────────────────────────────────┘ \n"
 
 echo -ne "$(blueprint 'Run update to a node') \n"
 echo -ne "$(yellowprint 'Example: localhost') \n"
 echo -ne "$(redprint 'Enter node name:')"; read varz3
 echo -ne "/usr/local/nmis8/bin/nmis.pl type=update node='$varz3' force=1 debug=1"
 /usr/local/nmis8/bin/nmis.pl type=update node=$varz3 force=1 debug=1
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, validate the name or contact the administrator.') \n"
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1605,15 +1756,19 @@ esac
 }
 sub_subCollectnodes() {
   clear
-  echo "
-┌───────────────────── Collect Node  ─────────────────┐
-  -->  Collect
+  echo -e "
+┌───────────────────── Collect Node  ───────────────────┐
+  -->  Allows performing a collect of a node on demand
 └───────────────────────────────────────────────────────┘\n"
 echo -ne "$(blueprint 'Run collect to a node') \n"
 echo -ne "$(yellowprint 'Example: localhost') \n"
 echo -ne "$(redprint 'Enter node name:')"; read varz4
 echo -ne "/usr/local/nmis8/bin/nmis.pl type=collect node='$varz4' force=1"
 /usr/local/nmis8/bin/nmis.pl type=collect node=$varz4 force=1 debug=1
+
+echo -ne "\n$(magentaprint 'TIPS TO RESOLVE AN ISSUE:') \n"
+echo -ne "\n$(redprint 'If the node does not respond, validate the nomber for node or contact the administrator.') \n"
+
 
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -1644,8 +1799,7 @@ sub_subEventsearch() {
   clear
   echo -e "\n
 ┌────────────────────────────── Event Search  ──────────────────────────────┐
-  -->  Event Search
-  The main function of the script is to search the log directories of the
+ --> The main function of the script is to search the log directories of the
   monitoring system, which will make it easier for the user to investigate
   any occurrence or event that has taken place.
 └───────────────────────────────────────────────────────────────────────────┘\n"
@@ -1658,14 +1812,15 @@ echo -ne "$(yellowprint 'Example:
 search="router1|router2|switch3"
 search="[D|d]own|Ping failed"') \n"
 echo -ne "$(redprint 'Enter the parameter to search for:')"; read varz4
-echo -ne "\n$(yellowprint 'Example:
-logs=all
-logs=nmis.log') \n"
-echo -ne "$(redprint 'specifies where to search:')"; read varz5
+#echo -ne "\n$(yellowprint 'Example:
+varz5="all"
+#logs=nmis.log') \n"
+#echo -ne "$(redprint 'specifies where to search:')"; read varz5
 echo -ne "perl /usr/local/nmis8/admin/Busqueda.pl $varz4 $varz5 \n"
 #perl /usr/local/nmis8/admin/Busqueda.pl "$varz4" $varz5
-perl /usr/local/nmis8/admin/Busqueda.pl search="$varz4" logs=$varz5
-                                        #search="NMIS is disabled" logs=all
+busque=`perl /usr/local/nmis8/admin/Busqueda.pl search="$varz4" logs=$varz5`
+echo "$busque"
+#search="NMIS is disabled" logs=all
 echo -ne "\n
 ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
 $(blueprint 'r)') Repeat    $(blueprint 'b)') Back
@@ -1696,19 +1851,23 @@ sub_subNodesbackup() {
   clear
   echo -e "\n
 ┌───────────────────── Backup to Nodes.nmis  ─────────────────┐
-  -->  Backup to Nodes.nmis
+  -->  Allows you to make a backup of the current file
+       Nodes.nmis, located in /usr/local/nmis8/conf/
 └─────────────────────────────────────────────────────────────┘\n"
 echo -ne "$(greenprint 'On-demand backups
 
 Back up the Nodes.nmis file located in the /usr/local/nmis8/conf/ directory.') \n"
 
-BTIME=`date +%b-%d-%y`
-DESTINATION=/root/Nodes_BKP_$BTIME.tar.gz
-SOURCEFOLDER=/usr/local/nmis8/conf/Nodes.nmis
-tar -cpzf $DESTINATION $SOURCEFOLDER #create the backup
+BTIME=`date +%F_%H%M`
+DESTINATION=Nodes_BKP_$BTIME.tar.gz
+SOURCEFOLDER=Nodes.nmis
+cd /root ; tar -C /usr/local/nmis8/conf/ -cpzf $DESTINATION $SOURCEFOLDER #create the backup
 
-echo -ne "$(blueprint 'Your backup is here:') \n"
+echo -ne "\n$(blueprint 'Your backup is here:') \n"
 find /root -name "Nodes_BKP_*" | tail -1
+#tar -tvf uploadprogress.tar
+
+
 
 echo -ne "\n
 ┌──────────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────────┐
@@ -1735,12 +1894,15 @@ sub_subSupportzip() {
   clear
   echo -e "\n
 ┌─────────────────────────── Support Zip  ───────────────────────┐
-  -->  Support Zip
-  The NMIS Support Tool collects all relevant information
-  regarding an NMIS server's status and configuration which can
-  be used to provide support.  It will also create a simple
-  report that users can use for self-diagnostics.
+  -->  Allows you to run the NMIS Support Tool and OMK Support
+  Tool, which collects all the relevant information about the
+  status and configuration of the server in 2 files:
+  nmis-support.zip and omk-support.zip, that must be attached in
+  case of opening a ticket.
 └────────────────────────────────────────────────────────────────┘\n"
+
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
 
 /usr/local/nmis8/admin/support.pl action=collect node= maxzipsize=9000000000
 
@@ -1774,13 +1936,13 @@ subNodesTroubleshooter() {
 └──────────────────────────────────────────────────────────────────────────┘\n"
     echo -ne "
 $(blueprint 'NMIS Configuration Consistency')
-$(greenprint '1)') Polling summary.
-$(greenprint '2)') Traceroute.
-$(greenprint '3)') MTR.
-$(greenprint '4)') Ping.
-$(greenprint '5)') SNMP.
-$(greenprint '6)') Update nodes.
-$(greenprint '7)') Collect Node.
+$(greenprint '1)') Polling summary Test.
+$(greenprint '2)') Traceroute Test.
+$(greenprint '3)') MTR Test.
+$(greenprint '4)') Ping Test.
+$(greenprint '5)') SNMP Test.
+$(greenprint '6)') Update nodes Test.
+$(greenprint '7)') Collect Node Test.
 $(greenprint '8)') Event search.
 $(greenprint '9)') Nodes.nmis backup.
 $(greenprint '10)') Support zip.
@@ -1839,15 +2001,17 @@ SubSmartDiagnostic() {
   clear
   echo -e "\n
 ┌──────────────────────   Smart Diagnostic   ──────────────────────────┐
-  -->  Tasks to be performed in the intelligent diagnosis
+  -->  It allows running smart tests that will allow the operator to
+       quickly review the status of the server and diagnose if there
+       are any active problems or find details that can be corrected
+       in time to avoid them
 └──────────────────────────────────────────────────────────────────────┘\n"
-echo -ne "$(greenprint 'It allows running smart tests that will allow the operator to quickly
-review the status of the server and diagnose if there are any active
-problems or find details that can be corrected in time to avoid them.')
- \n\n"
+
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
 
 #create directory
-dir1=/tmp/Troubleshooting_Wizard_$(date +%F_%H%M) > /home/z.txt
+dir1=/tmp/Troubleshooting_Wizard_Files_$(date +%F_%H%M) > /home/z.txt
 mkdir -p $dir1
 ##########################
 echo -e "Collecting data from TOP"
@@ -1924,7 +2088,7 @@ echo -ne "-- Show the amount of free disk space on each mounted disk --\n" > $di
 echo "Command: f -h" >> $dir1/Filesystem.txt
 df -h >> $dir1/Filesystem.txt
 echo -ne "
-Tips:
+TIPS TO RESOLVE AN ISSUE:
 If any disk has more than 85% usage, contact the administrator
 and inform that the server is low on disk space.\n" >> $dir1/Filesystem.txt
 
@@ -1942,7 +2106,7 @@ free=$(free -mt | grep Total | awk '{print $4}')
 if [[ "$free" -le 9000  ]]; then
         ## get top processes consuming system memory and save to temporary file
         #ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head
-        echo -ne "\nTIP:
+        echo -ne "\nTIPS TO RESOLVE AN ISSUE:
 Warning, server memory is running low \nFree memory: $free MB\n" >> $dir1/Filesystem.txt
         echo -ne "Contact the administrator and indicate what is happening" >> $dir1/Filesystem.txt
 fi
@@ -1975,8 +2139,8 @@ if ps ax | grep -v grep | grep $demon > /dev/null
     fi
 done
 
-echo -e "\n Check the current status of SELinux \n"
- sestatus
+echo -e "\n Check the current status of SELinux \n" >> $dir1/ServiceStatus.txt
+ sestatus >> $dir1/ServiceStatus.txt
 
 
 echo -ne "$(greenprint '......................................... Completed  ✓ ') \n\n"
@@ -2099,7 +2263,7 @@ echo -ne "$(greenprint '......................................... Completed  ✓
 ##########################
 echo -e "Collecting data from Perform a configuration backup"
 
-perl /usr/local/nmis8/admin/config_backup_LATAM.pl $dir1  > /dev/null
+perl /usr/local/nmis8/admin/config_backup_LATAM.pl /tmp  > /dev/null
 
 echo -ne "$(greenprint '......................................... Completed  ✓ ') \n\n"
 ##########################
@@ -2111,11 +2275,11 @@ perl /usr/local/nmis8/admin/fixperms.pl > /dev/null
 echo -ne "$(greenprint '......................................... Completed  ✓ ') \n\n"
 ##########################
 ##########################
-echo -e "Collecting data from Support Zip"
-
-#/usr/local/nmis8/admin/support.pl action=collect node= maxzipsize=9000000000 > /dev/null
-
-echo -ne "$(greenprint '......................................... Completed  ✓ ') \n\n"
+# echo -e "Collecting data from Support Zip"
+#
+# /usr/local/nmis8/admin/support.pl action=collect  maxzipsize=900000 > /dev/null
+#
+# echo -ne "$(greenprint '......................................... Completed  ✓ ') \n\n"
 ##########################
 ##########################
 echo -e "Collecting data from version RRD and Mongo"
@@ -2132,17 +2296,28 @@ dir2=$(more /home/z.txt)
 #more /home/z.txt
 #tar -C /tmp -czvf $dir2.tar.gz $dir1 #> /dev/null #| mv $dir2.tar.gz /tmp
 tar -C /tmp -czvf $dir2.tar.gz $dir2 > /dev/null #| mv $dir2.tar.gz /tmp
-mv $dir2* /tmp/
+mv $dir2* /tmp > /dev/null
 echo -ne "\n$(blueprint 'Your tar.gz file of the Troubleshooting Wizard is here:') \n"
-
+echo -ne "\n$(magentaprint 'Status and details of the operating system and NMIS')\n"
 find /tmp -name "$dir2.tar.gz" | tail -1
+
 ##########################
-#cd /tmp
-##rm -rf $dir2
+echo -ne "\n$(magentaprint 'Directory backup .tar file')\n"
+#find /tmp -name "Troubleshooting_Wizard_backup-*" | tail -1
+find /tmp -type f -mtime -1 | grep "Troubleshooting_Wizard_backup-$(date +%F-%H%M)" | tail -1
+
+##########################
+#pwd
+cd /home/test
+rm -rf index.ht*
+cd /tmp
+rm -rf $dir2
 #
 rm -f  /home/z.txt
 
- echo -e "\n Operation completed \n"
+echo -e "\nOperation completed \n"
+echo -ne "$(blueprint 'Your backup is here:') \n"
+echo -ne "$(redprint 'This .tar.gz file must be sent as an attachment in the ticket created at support@opmantek.com.')'"
 
 echo -ne "\n
 ┌──────────   $(yellowprint 'OPTIONS MENU')  ─────────────┐
@@ -2167,50 +2342,52 @@ esac
 ### Option Create System Backup  ##
 SubCreateSystemBackupFile() {
   clear
-    echo -e "\n
-  ┌─────────────────  Perform a configuration backup  .─────────────┐
-  -->  Checking NMIS and OMK configuration files for errors.
+  echo -e "\n
+┌─────────────────  Perform a configuration backup  .─────────────┐
   -->  Backup configuration directories in order to preserve all
        the adjustments made by the customer.
-  └─────────────────────────────────────────────────────────────────┘\n"
+└─────────────────────────────────────────────────────────────────┘\n"
 
-  echo -ne "$(blueprint 'Enter the directory where you want to save your backup:') \n"
-  echo -ne "$(yellowprint 'Example: /tmp  or  /root') \n"
-  echo -ne "Example: /tmp  or  /root \n";  read var1
-  echo -ne "\n$(greenprint 'Performing backup') \n"
-  BKP_nmis="$(perl /usr/local/nmis8/admin/config_backup_LATAM.pl $var1  )"
-  echo"$BKP_nmis"
-  echo -ne "$(greenprint 'Backup successful') \n"
-  echo -ne "$(yellowprint 'The following directories were backed up:') \n"
-  echo -ne "
-    /
-    ├── etc
-    │	├─── cron.d
-    │	├─── cron.daily
-    │	├─── cron.deny
-    │	├─── cron.hourly
-    │	├─── cron.monthly
-    │	├─── crontab
-    │	└─── cron.weekly
-    └──usr
-    	└── local
-    		├── nmis8
-    		│	├── models
-    		│	├── conf
-    		│	├── cgi-bin
-    		│	└── menu
-    		│	 	 └── css
-    		└── omk
-    			├── conf
-    			├── templates
-    			├── lib
-    			│ 	└── json
-    			└── public
-    			 	└── omk
-  \n"
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
 
-  echo -ne "$(blueprint 'Your backup is here:') \n"
-  find $var1 -name "nmis-config-backup*" | tail -1
+echo -ne "$(blueprint 'Enter the directory where you want to save your backup:') \n"
+echo -ne "$(yellowprint 'Example: /tmp  or  /root') \n"
+read var1
+echo -ne "$(greenprint 'Performing backup') \n"
+BKP_nmis="$(perl /usr/local/nmis8/admin/config_backup_LATAM.pl $var1  )"
+echo"$BKP_nmis"
+echo -ne "$(greenprint 'Backup successful') \n"
+echo -ne "$(yellowprint 'The following directories were backed up:') \n"
+echo -ne "
+  /
+  ├── etc
+  │	├─── cron.d
+  │	├─── cron.daily
+  │	├─── cron.deny
+  │	├─── cron.hourly
+  │	├─── cron.monthly
+  │	├─── crontab
+  │	└─── cron.weekly
+  └──usr
+  	└── local
+  		├── nmis8
+  		│	├── models-default
+  		│	├── models-custom
+  		│	├── conf
+  		│	├── cgi-bin
+  		│	└── menu
+  		│	 	 └── css
+  		└── omk
+  			├── conf
+  			├── templates
+  			├── lib
+  			│ 	└── json
+  			└── public
+  			 	└── omk
+\n"
+echo -ne "$(blueprint 'Your backup is here:') \n"
+find $var1 -name "nmis-config-backup*" | tail -1
 
   echo -ne "\n
   ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
@@ -2240,13 +2417,16 @@ SubCreateSystemBackupFile() {
 SubSupportAutomationTool() {
   clear
   echo -e "\n
-┌─────────────────────────── Support Zip  ───────────────────────┐
-  -->  Support Zip
-  The NMIS Support Tool collects all relevant information
-  regarding an NMIS server's status and configuration which can
-  be used to provide support.  It will also create a simple
-  report that users can use for self-diagnostics.
-└────────────────────────────────────────────────────────────────┘\n"
+┌─────────────────────────── Support Zip  ─────────────────────────┐
+  -->  Allows you to run the NMIS Support Tool and OMK Support
+       Tool, which collects all the relevant information about
+       the status and configuration of the server in 2 files:
+       nmis-support.zip and omk-support.zip, that must be attached
+       in case of opening a ticket.
+└──────────────────────────────────────────────────────────────────┘\n"
+
+echo -e "The test will start soon. \n"
+read -p "Press Enter to continue..."
 
 /usr/local/nmis8/admin/support.pl action=collect node= maxzipsize=9000000000
 
@@ -2288,10 +2468,10 @@ echo -ne "
 $(vmstat -S M)
 └─────────────────────────────────────────────────────────────────────────────────────┘\n
 $(magentaprint 'Main Menu')
-$(greenprint '1)')  Execute HealthCheck.
-$(greenprint '2)')  NMIS Configuration Consistency.
+$(greenprint '1)')  Execute Manual HealthCheck.
+$(greenprint '2)')  Review NMIS Configuration Consistency.
 $(greenprint '3)')  Nodes Troubleshooter.
-$(greenprint '4)')  Smart Diagnostic.
+$(greenprint '4)')  Execute Smart Diagnostics.
 $(greenprint '5)')  Create System Backup File.
 $(greenprint '6)')  Execute Support Automation Tool.
 
