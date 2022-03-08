@@ -1945,7 +1945,6 @@ $(greenprint '6)') Update nodes Test.
 $(greenprint '7)') Collect Node Test.
 $(greenprint '8)') Event search.
 $(greenprint '9)') Nodes.nmis backup.
-$(greenprint '10)') Support zip.
 
 $(magentaprint 'm)') Main Menu
 $(redprint 'e)') Exit
@@ -1978,9 +1977,6 @@ Choose an option:  "
         ;;
     9)
         sub_subNodesbackup
-        ;;
-    10)
-        sub_subSupportzip
         ;;
     m|M)
         mainmenu
@@ -2072,9 +2068,9 @@ X.0 s would be critical (and there would be a problem).\n"  >> $dir1/Disk_Perfor
 echo -e "\nMonitoring System in/out statistics for devices and partitions."  >> $dir1/Disk_Performance_Check.txt
 echo -e "--> 4 queries are made every 5 seconds "  >> $dir1/Disk_Performance_Check.txt
 echo -ne "Command:
-iostat -x 5 4 \n"  >> $dir1/Disk_Performance_Check.txt
+iostat -x 2 3 \n"  >> $dir1/Disk_Performance_Check.txt
 
-iostat -x 5 4  >> $dir1/Disk_Performance_Check.txt
+iostat -x 2 3  >> $dir1/Disk_Performance_Check.txt
 
 echo -ne "Parameters:
 Using 100% iowait / Utilization indicates that there is a problem and in most
@@ -2387,7 +2383,8 @@ echo -ne "
   			 	└── omk
 \n"
 echo -ne "$(blueprint 'Your backup is here:') \n"
-find $var1 -name "nmis-config-backup*" | tail -1
+#find $var1 -name "Troubleshooting_Wizard_backup*" | tail -1
+find $var1 -type f -mtime -1 | grep "Troubleshooting_Wizard_backup-$(date +%F-%H%M)" | tail -1
 
   echo -ne "\n
   ┌────────────────────────   $(yellowprint 'OPTIONS MENU')  ────────────────────────┐
