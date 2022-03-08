@@ -86,6 +86,17 @@ if ($arg{logs} eq "all") {
 		}
 	}
 }
+if ($arg{logs} eq "all") {
+	opendir (DIR, $C->{log_root});
+	my @dirlist = sort (readdir DIR);
+	closedir DIR;
+	for ( my $index = 0; $index <= $#dirlist; ++$index ) {
+		if ( $dirlist[$index] =~ /^nmis\.log/ ) {
+			processLogFile(file => "$C->{log_root}/$dirlist[$index]");
+			print "\n";
+		}
+	}
+}
 if ($arg{logs} eq "all"){
 	opendir (DIR, $C->{omk_logs});
 	my @dirlist = sort (readdir DIR);
@@ -98,6 +109,7 @@ if ($arg{logs} eq "all"){
 	}
 }
 else {
+	processLogFile(file => "$C->{log_root}/nmis.log");
 	processLogFile(file => "$C->{log_root}/event.log");
 	processLogFile(file => "$C->{omk_logs}/opCharts.log");
 }
